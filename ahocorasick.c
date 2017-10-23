@@ -1,4 +1,12 @@
-#include <stdio.h>
+/*
+ * CS 481
+ * Ata Deniz Aydin
+ * 21502637
+ *
+ * Implementation of the Aho-Corasick algorithm.
+ */
+
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -16,9 +24,9 @@
 	}							\
 } while (0)
 
-nodetree buildtree(char *patterns, int *len)
+keytree buildtree(char *patterns, int *len)
 {
-	nodetree tree = calloc(strlen(patterns)+1, sizeof(struct node));
+	keytree tree = calloc(strlen(patterns)+1, sizeof(struct node));
 	int i = 0,      // current index of tree
 	    maxlen = 4; // maximum length of next array, applies to all nodes, doubled when necessary
 	char *word = patterns; // start of current word
@@ -28,6 +36,7 @@ nodetree buildtree(char *patterns, int *len)
 	// add each word to tree sequentially
 	*len = 1;
 	for (char *c = patterns; *c; ++c) {
+		*c = tolower(*c); // just in case
 		if (isalpha(*c)) { // extend current word
 			// look for child with character c
 			j = findchild(tree, i, *c);
@@ -89,9 +98,11 @@ nodetree buildtree(char *patterns, int *len)
 	return tree;
 }
 
-void search(nodetree tree, char *text)
+void search(FILE *f, keytree tree, char *text)
 {
 	int i = 0, j; // current and next state
+
+	fprintf(f, "Search\n----------------------------------------------------------------------\n");
 
 	// iterate through string
 	for (int k = 0; text[k]; ++k) {
@@ -111,44 +122,16 @@ void search(nodetree tree, char *text)
 
 		// print outputs associated to node, assuming "" is not an output
 		for (j = 0; j < tree[i].outlen; ++j)
-			printf("keyword: %s index: %d\n", tree[i].outputs[j], k - tree[i].depth);
+			fprintf(f, "keyword: %s index: %d\n", tree[i].outputs[j], k - tree[i].depth + 1); // tree[i].depth gives length of match, k last character
 	}
 }
 
-int findchild(nodetree tree, int i, char c)
+int findchild(keytree tree, int i, char c)
 {
 	int j;
 	// iterate through next states for tree[i]
 	for (j = 0; j < tree[i].nextlen; ++j)
-		if (tree[tree[i].next[j]].c == c)
+		if (tree[tree[i].next[j]].c == tolower(c)) // lowercase just in case
 			return j;
 	return j;
-}
-
-void printtree(FILE *f, nodetree tree, int len)
-{
-	fprintf(f, "Build tree\n----------------------------------------------------------------------\n");
-	for (int i = 0; i < len; ++i)
-		printnode(f, tree+i);
-}
-
-void printnode(FILE *f, struct node *node)
-{
-	fprintf(f, "char: %c next states: [", node->c);
-	for (int i = 0; i < node->nextlen; ++i)
-		fprintf(f, "%s%d", i ? ", " : "", node->next[i]);
-	fprintf(f, "] fail state: %d output: [", node->fail);
-	for (int i = 0; i < node->outlen; ++i)
-		fprintf(f, "%s'%s'", i ? ", " : "", node->outputs[i]);
-	fprintf(f, "]\n");
-}
-
-void freetree(nodetree tree, int len)
-{
-	while (--len) freenode(tree+len);
-}
-
-void freenode(struct node *node)
-{
-	free(node->next);
 }
