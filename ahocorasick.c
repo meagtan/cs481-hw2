@@ -4,6 +4,13 @@
  * 21502637
  *
  * Implementation of the Aho-Corasick algorithm.
+ * EXPANDARR() is a macro used to avoid repeating code in inserting to dynamic arrays;
+ *  perhaps a struct and appropriate methods could have been used instead in a larger scale project
+ * buildtree() first iterates through each pattern in the string, updates current state or adds new state
+ *  depending on current character of current pattern, and adds the pattern to outputs when pattern finishes
+ *  It then adds failure links to the tree formed through a BFS, with an array for the queue
+ * search() threads keyword tree through the given text and outputs each output pattern in the current state
+ * findchild() used by buildtree() and search(), iterates through children of current state
  */
 
 #include <stdlib.h>
